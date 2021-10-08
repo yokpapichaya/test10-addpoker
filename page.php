@@ -32,6 +32,7 @@ if( is_front_page()) {
     $context['options_casino_block']  = get_fields('options')['casino_block'];
     $context['options_slot_block']  = get_fields('options')['slot_block'];
     $context['options_keno_block']  = get_fields('options')['keno_block'];
+    $context['options_poker_block']  = get_fields('options')['poker_block'];
     $context['options_trading_block']  = get_fields('options')['trading_block'];
     $context['options_comment_title']  = get_fields('options')['comment_title'];
     $context['options_jackpot']  = get_fields('options')['jackpot'];

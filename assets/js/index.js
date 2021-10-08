@@ -629,11 +629,42 @@ if (sessionStorage.getItem("token")) {
                 }
 
                 setTimeout(() => {
-                    var dataSlot = listData.lists.filter(item => item.type == 'slot' || item.type == 'poker');
+                    var dataSlot = listData.lists.filter(item => item.type == 'slot');
                     $.each(dataSlot, function(index, value) {
                         if (!value.active) {
                             $(`.slot_game[data-slug=${value.productCode}]`).addClass('disabled');
                             $(`.slot_game[data-slug=${value.productCode}]`).append('<div class="noti">ปิดปรับปรุง</div>');
+                        }
+                    });
+                }, 500);
+            }
+        },
+        'page_template_page_poker': {
+            init: function() {
+
+            },
+            finalize: async function() {
+                var listData;
+                const getJson = async function() {
+                    var data = await axios.get(`https://cdn.ambbet.com/gamelists-ambfun.json`);
+                    return data;
+                }
+
+                if (sessionStorage.getItem('data_slug')) {
+                    listData = JSON.parse(sessionStorage.getItem('data_slug'));
+                } else {
+                    var jsonData = await getJson();
+                    var gameItem = jsonData.data;
+                    listData = gameItem;
+                    sessionStorage.setItem('data_slug', JSON.stringify(gameItem));
+                }
+
+                setTimeout(() => {
+                    var dataPoker = listData.lists.filter(item => item.type == 'poker');
+                    $.each(dataPoker, function(index, value) {
+                        if (!value.active) {
+                            $(`.poker[data-slug=${value.productCode}]`).addClass('disabled');
+                            $(`.poker[data-slug=${value.productCode}]`).append('<div class="noti">ปิดปรับปรุง</div>');
                         }
                     });
                 }, 500);
@@ -680,126 +711,83 @@ if (sessionStorage.getItem("token")) {
                             let listGame;
                             var type = response.slugpost;
 
-                            if (type == 'amb-poker') {
-                                getGamelistamb();
-                                async function getGamelistamb() {
-                                    let uri = url_listgame;
-                                    let resp = await axios.get(uri)
-                                    var status = listData.lists.filter(item => item.productCode == $('.game-list').data('slug'))[0];
-                                    if (status.active) {
-                                        if (resp.data.code == 0) {
-                                            listGame = resp.data.data;
-                                            listGame.forEach(data => {
-                                                $('.game-list').append(`<div class="col-lg-2 col-md-3 col-6">
-                                        <div class="box-card-promotion" data-game="${data.gameId}" data-key="${data.gameKey}" data-active="${data.isActive}">
-                                        <div class="box-card-promotion__img"><img class="list-image" src="${data.imageUrl}"></div>
-                                            <div class="box-card-promotion__caption">
-                                                ${data.gameName.en}
-                                            </div>
-                                        </div>
-                                    </div>`)
-                                            })
-                                        } else {
-                                            if (resp.data.message) {
-                                                $('.game-list').append(`<h3>${resp.data.message}</h3>`);
-                                            } else {
-                                                $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
-                                            }
-                                        }
-                                    } else {
-                                        $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
+                            getGamelistall();
+                            async function getGamelistall() {
+                                let uri = url_listgame;
+                                let resp = await axios.get(uri)
+                                let listgame;
+
+                                $.each(resp.data.data, (index, data) => {
+
+                                    if (data.productCode == type) {
+                                        listgame = data.lists;
                                     }
-                                    $('.box-card-promotion').on('click', function(e) {
-                                        if (!sessionStorage.getItem('token')) {
-                                            e.preventDefault();
-                                            window.location.href = location.hostname + '/login'
-                                        } else {
-                                            var card = $(this).data('game');
-                                            var active = $(this).data('active');
-                                            var key = $(this).data('key');
-                                            Loginambgame(card, active, key);
-                                        }
-                                    })
-                                }
-                            } else {
-                                getGamelistall();
-                                async function getGamelistall() {
-                                    let uri = url_listgame;
-                                    let resp = await axios.get(uri)
-                                    let listgame;
+                                });
 
-                                    $.each(resp.data.data, (index, data) => {
-
-                                        if (data.productCode == type) {
-                                            listgame = data.lists;
-                                        }
-                                    });
-
-                                    if (resp.data.status == 0) {
-                                        if (type == 'pg_slot') {
-                                            var status = listData.lists.filter(item => item.productCode == $('.game-list').data('slug'))[0];
-                                            if (status.active) {
-                                                listgame.forEach(data => {
-                                                    $('.game-list').append(`
-                                                        <div id="each-list" class="col-lg-2 col-md-3 col-6">
-                                                        <div class="box-card-promotion" data-code="${data.gameCode}">
-                                                            <div class="box-card-promotion__img"><img class="list-image" src="https://cdn.ambbet.com/${data.imgUrl}" onerror="this.onerror=null;this.src='https://748073e22e8db794416a-cc51ef6b37841580002827d4d94d19b6.ssl.cf3.rackcdn.com/not-found.png';"></div>
-                                                            <div class="box-card-promotion__caption">
-                                                                ${data.gameName}
-                                                            </div>
-                                                        </div>
-                                                    </div>`)
-                                                })
-                                            }
-                                        } else {
-                                            var status = listData.lists.filter(item => item.productCode == $('.game-list').data('slug'))[0];
-                                            if (status.active) {
-                                                listgame.forEach(data => {
-                                                    $('.game-list').append(`
+                                if (resp.data.status == 0) {
+                                    if (type == 'pg_slot') {
+                                        var status = listData.lists.filter(item => item.productCode == $('.game-list').data('slug'))[0];
+                                        if (status.active) {
+                                            listgame.forEach(data => {
+                                                $('.game-list').append(`
                                                     <div id="each-list" class="col-lg-2 col-md-3 col-6">
-                                                    <div class="box-card-promotion" data-id="${data.gameId}" data-code="${data.gameCode}" data-vender="${data.productCode}">
+                                                    <div class="box-card-promotion" data-code="${data.gameCode}">
                                                         <div class="box-card-promotion__img"><img class="list-image" src="https://cdn.ambbet.com/${data.imgUrl}" onerror="this.onerror=null;this.src='https://748073e22e8db794416a-cc51ef6b37841580002827d4d94d19b6.ssl.cf3.rackcdn.com/not-found.png';"></div>
                                                         <div class="box-card-promotion__caption">
                                                             ${data.gameName}
                                                         </div>
                                                     </div>
                                                 </div>`)
-                                                })
-                                            } else {
-                                                $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
-                                            }
+                                            })
                                         }
                                     } else {
-                                        if (resp.data.message) {
-                                            $('.game-list').append(`<h3>${resp.data.message}</h3>`);
+                                        var status = listData.lists.filter(item => item.productCode == $('.game-list').data('slug'))[0];
+                                        if (status.active) {
+                                            listgame.forEach(data => {
+                                                $('.game-list').append(`
+                                                <div id="each-list" class="col-lg-2 col-md-3 col-6">
+                                                <div class="box-card-promotion" data-id="${data.gameId}" data-code="${data.gameCode}" data-vender="${data.productCode}">
+                                                    <div class="box-card-promotion__img"><img class="list-image" src="https://cdn.ambbet.com/${data.imgUrl}" onerror="this.onerror=null;this.src='https://748073e22e8db794416a-cc51ef6b37841580002827d4d94d19b6.ssl.cf3.rackcdn.com/not-found.png';"></div>
+                                                    <div class="box-card-promotion__caption">
+                                                        ${data.gameName}
+                                                    </div>
+                                                </div>
+                                            </div>`)
+                                            })
                                         } else {
                                             $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
                                         }
                                     }
-
-                                    $('.box-card-promotion').on('click', function(e) {
-                                        if (!sessionStorage.getItem('token')) {
-                                            e.preventDefault();
-                                            window.location.href = location.hostname + '/login'
-                                        } else {
-                                            if (type == 'pg_slot') {
-                                                var gameId = $(this).data('code');
-                                                Loginpost(gameId);
-                                            } else if (type == 'gamatron') {
-                                                var gameId = $(this).data('id');
-                                                Loginpost(gameId);
-                                            } else if (type == 'slotxo') {
-                                                var gameCode = $(this).data('id');
-                                                LoginpostXO(gameCode);
-                                            } else {
-                                                var gameId = $(this).data('id');
-                                                var gameCode = $(this).data('code');
-                                                var productCode = $(this).data('vender');
-                                                Loginget(gameId, gameCode, productCode);
-                                            }
-                                        }
-                                    })
+                                } else {
+                                    if (resp.data.message) {
+                                        $('.game-list').append(`<h3>${resp.data.message}</h3>`);
+                                    } else {
+                                        $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
+                                    }
                                 }
+
+                                $('.box-card-promotion').on('click', function(e) {
+                                    if (!sessionStorage.getItem('token')) {
+                                        e.preventDefault();
+                                        window.location.href = location.hostname + '/login'
+                                    } else {
+                                        if (type == 'pg_slot') {
+                                            var gameId = $(this).data('code');
+                                            Loginpost(gameId);
+                                        } else if (type == 'gamatron') {
+                                            var gameId = $(this).data('id');
+                                            Loginpost(gameId);
+                                        } else if (type == 'slotxo') {
+                                            var gameCode = $(this).data('id');
+                                            LoginpostXO(gameCode);
+                                        } else {
+                                            var gameId = $(this).data('id');
+                                            var gameCode = $(this).data('code');
+                                            var productCode = $(this).data('vender');
+                                            Loginget(gameId, gameCode, productCode);
+                                        }
+                                    }
+                                })
                             }
 
                             //     Loginpost();
@@ -902,6 +890,96 @@ if (sessionStorage.getItem("token")) {
                                     }
                                 }
 
+                            }
+                        }
+                    })
+            }
+        },
+        'single_poker': {
+            init: function() {
+
+            },
+            finalize: async function() {
+                var listData;
+                const getJson = async function() {
+                    var data = await axios.get(`https://cdn.ambbet.com/gamelists-ambfun.json`);
+                    return data;
+                }
+                if (sessionStorage.getItem('data_slug')) {
+                    listData = JSON.parse(sessionStorage.getItem('data_slug'));
+                } else {
+                    var jsonData = await getJson();
+                    var gameItem = jsonData.data;
+                    listData = gameItem;
+                    sessionStorage.setItem('data_slug', JSON.stringify(gameItem));
+                }
+
+                var id = $('.game-list').attr("id");
+                var url;
+                if (!url) url = window.location.href;
+                var text = url.split('/');
+                var type = text[text.length - 2];
+
+                var img =
+                    $.ajax({
+                        type: "post",
+                        dataType: "json",
+                        url: myAjax.ajaxurl,
+                        data: {
+                            action: "get_list_game",
+                            post_id: id,
+                        },
+                        success: function(response) {
+                            var url_listgame = response.list_game_poker;
+                            var url_login = response.login_link;
+                            axios.defaults.headers.common['Authorization'] = 'Bearer ' + sessionStorage.getItem('token');
+                            let listGame;
+                            var type = response.slugpost;
+
+                            getGamelistamb();
+                            async function getGamelistamb() {
+                                let uri = url_listgame;
+                                let resp = await axios.get(uri)
+                                var status = listData.lists.filter(item => item.productCode == $('.game-list').data('slug'))[0];
+                                if (status.active) {
+                                    if (resp.data.code == 0) {
+                                        listGame = resp.data.data;
+                                        listGame.forEach(data => {
+                                            $('.game-list').append(`<div class="col-lg-2 col-md-3 col-6">
+                                    <div class="box-card-promotion" data-game="${data.gameId}" data-key="${data.gameKey}" data-active="${data.isActive}">
+                                    <div class="box-card-promotion__img"><img class="list-image" src="${data.imageUrl}"></div>
+                                        <div class="box-card-promotion__caption">
+                                            ${data.gameName.en}
+                                        </div>
+                                    </div>
+                                </div>`)
+                                        })
+                                    } else {
+                                        if (resp.data.message) {
+                                            $('.game-list').append(`<h3>${resp.data.message}</h3>`);
+                                        } else {
+                                            $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
+                                        }
+                                    }
+                                } else {
+                                    $('.game-list').append(`<h3>เกมปิดปรับปรุงชั่วคราว ขออภัยในความไม่สะดวก</h3>`);
+                                }
+                                $('.box-card-promotion').on('click', function(e) {
+                                    if (!sessionStorage.getItem('token')) {
+                                        e.preventDefault();
+                                        window.location.href = location.hostname + '/login'
+                                    } else {
+                                        var card = $(this).data('game');
+                                        var active = $(this).data('active');
+                                        var key = $(this).data('key');
+                                        Loginambgame(card, active, key);
+                                    }
+                                })
+                            }
+
+                            //     Loginpost();
+                            function isLine() {
+                                return /Line/i.test(navigator.userAgent);
                             }
                             async function Loginambgame(gameId, isActive, gameKey) {
 

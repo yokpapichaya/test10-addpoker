@@ -198,6 +198,11 @@ class StarterSite extends Timber\Site {
 				'icon_url' => 'dashicons-image-filter',
 			));
 			acf_add_options_page(array(
+				'page_title' 	=> 'โป๊กเกอร์',
+				'menu_slug' 	=> 'p_poker',
+				'icon_url' => 'dashicons-images-alt',
+			));
+			acf_add_options_page(array(
 				'page_title' 	=> 'คีโน',
 				'menu_slug' 	=> 'p_keno',
 				'icon_url' => 'dashicons-format-aside',
@@ -295,6 +300,7 @@ function get_list_game() {
 	if(isset($id)){
 		$group_url = array(
 			'list_game' => get_field('slot_prefix',$id), 
+			'list_game_poker' => get_field('poker_prefix',$id), 
 			'login_link' => get_field('login_api',$id),
 			'slugpost' => get_field('postslug',$id)
 		);
@@ -327,6 +333,7 @@ if ( get_current_user_id() != 1 ) {
 	  remove_menu_page('edit.php?post_type=slot_game');    // slot post type
 	  remove_menu_page('edit.php?post_type=keno');    // keno post type
 	  remove_menu_page('edit.php?post_type=trading');    // trading post type
+	  remove_menu_page('edit.php?post_type=poker');    // poker post type
 	  remove_menu_page( 'edit.php?post_type=acf-field-group' ); //acf plugin
 	  remove_menu_page( 'index.php' ); 
 	  remove_menu_page( 'edit.php?post_type=comment_home' ); 	
